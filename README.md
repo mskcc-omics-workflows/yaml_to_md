@@ -2,6 +2,8 @@
 
 - [YAML to Markdown](#yaml-to-markdown)
 - [yaml\_to\_md](#yaml_to_md)
+      - [requirements](#requirements)
+      - [usage](#usage)
       - [validate\_yaml](#validate_yaml)
       - [convert\_yaml\_to\_markdown](#convert_yaml_to_markdown)
       - [convert](#convert)
@@ -11,6 +13,20 @@
 # yaml\_to\_md
 
 <a id="yaml_to_md.validate_yaml"></a>
+
+#### requirements
+
+- jsonschema
+- requests
+- typer
+- yaml
+- tabulate
+
+#### usage
+
+```bash
+python yaml_to_md.py -y test.yaml
+```
 
 #### validate\_yaml
 
