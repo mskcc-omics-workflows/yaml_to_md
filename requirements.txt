@@ -1,0 +1,5 @@
+jsonschema
+requests
+typer
+yaml
+tabulate 
