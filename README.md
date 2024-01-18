@@ -69,5 +69,5 @@ The `convert` function is a Python script that converts a YAML file into a Markd
 **Arguments**:
 
 - `yaml_file` (`Path`): The `yaml_file` parameter is the path to the YAML file that you want to convert to Markdown. It is specified using the `--yaml-file` or `-y` option when running the script. The file should exist and be readable
-- `schema_url` (`str`): The `schema_url` parameter is the URL of the JSON schema that will be used to validate the YAML data. In this code, the default value for `schema_url` is set to "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json". However, you can provide your own
+- `schema_url` (`str`): The `schema_url` parameter is the URL of the JSON schema that will be used to validate the YAML data. In this code, the default value for `schema_url` is set to "https://raw.githubusercontent.com/mskcc-omics-workflows/yaml_to_md/main/nextflow_schema/meta-schema.json" derived from "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json>". However, you can provide your own
 - `output_file` (`str`): The `output_file` parameter is the path to the output Markdown file. It specifies the file where the converted Markdown content will be saved. By default, the value is set to "output.md". However, you can provide a different file path if desired

@@ -99,7 +99,7 @@ def convert(
 
     yaml_file: Path = typer.Option(...,"-y", "--yaml-file", exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True, help="Path to the YAML file."),
     schema_url: str = typer.Option(
-        "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json",
+        "https://raw.githubusercontent.com/mskcc-omics-workflows/yaml_to_md/main/nextflow_schema/meta-schema.json",
         "--schema-url",
         "-s",
         help="URL of the JSON schema.",
@@ -122,7 +122,7 @@ def convert(
     :type yaml_file: Path
     
     :param schema_url: The `schema_url` parameter is the URL of the JSON schema that will be used to
-    validate the YAML data. In this code, the default value for `schema_url` is set to
+    validate the YAML data. In this code, the default value for `schema_url` is set to "https://raw.githubusercontent.com/mskcc-omics-workflows/yaml_to_md/main/nextflow_schema/meta-schema.json" derived from
     "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json". However, you
     can provide one as well
     
