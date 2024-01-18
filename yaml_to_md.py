@@ -25,8 +25,12 @@ def validate_yaml(yaml_data, schema_url):
     schema_data = response.json()
 
     # Validate YAML against schema
-    jsonschema.validate(data, schema_data)
-
+    
+    try:
+        jsonschema.validate(data, schema_data)
+    except jsonschema.exceptions.ValidationError as err:
+        typer.echo(f"YAML could not be validated. Please check if its correct and follows the schema", err)
+        exit(1)
     typer.echo(f"YAML validated.")
     
     return data
@@ -53,9 +57,9 @@ def convert_yaml_to_markdown(data):
     tools_table += "|------|-------------|---------|----------|\n"
     for tool in data["tools"]:
         tool_name = next(iter(tool))  # Get the tool name
-        tool_description = tool[tool_name]['description']
-        tool_license = ', '.join(tool[tool_name]['licence'])
-        tool_homepage = tool[tool_name]['homepage']
+        tool_description = tool[tool_name]['description'].replace('\n', ' ')
+        tool_license = ', '.join(tool[tool_name]['licence']).replace('\n', ' ')
+        tool_homepage = tool[tool_name]['homepage'].replace('\n', ' ')
         tool_table_row = f"| {tool_name} | {tool_description} | {tool_license} | {tool_homepage} |\n"
         tools_table += tool_table_row
 
@@ -65,8 +69,8 @@ def convert_yaml_to_markdown(data):
     for input_item in data["input"]:
         input_name = next(iter(input_item))  # Get the input name
         input_type = input_item[input_name]['type']
-        input_description = input_item[input_name]['description']
-        input_pattern = input_item[input_name].get('pattern', '')
+        input_description = input_item[input_name]['description'].replace('\n', ' ')
+        input_pattern = input_item[input_name].get('pattern', '').replace('\n', ' ')
         input_table_row = f"| {input_name} | {input_type} | {input_description} | {input_pattern} |\n"
         inputs_table += input_table_row
 
@@ -76,8 +80,8 @@ def convert_yaml_to_markdown(data):
     for output_item in data["output"]:
         output_name = next(iter(output_item))  # Get the output name
         output_type = output_item[output_name]['type']
-        output_description = output_item[output_name]['description']
-        output_pattern = output_item[output_name].get('pattern', '')
+        output_description = output_item[output_name]['description'].replace('\n', ' ')
+        output_pattern = output_item[output_name].get('pattern', '').replace('\n', ' ')
         output_table_row = f"| {output_name} | {output_type} | {output_description} | {output_pattern} |\n"
         outputs_table += output_table_row
 
