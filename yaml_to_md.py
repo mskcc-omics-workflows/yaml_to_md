@@ -114,6 +114,7 @@ def convert(
 
     typer.echo(f"Conversion completed. Markdown output saved to {output_path}.")
 
+
 @app.command()
 def all(
     yaml_file: Path = typer.Option(
@@ -209,8 +210,23 @@ def convert_yaml_to_markdown(data):
     for tool in data["tools"]:
         tool_name = next(iter(tool))  # Get the tool name
         tool_description = tool[tool_name]["description"].replace("\n", " ")
-        tool_license = ", ".join(tool[tool_name]["licence"]).replace("\n", " ")
-        tool_homepage = tool[tool_name]["homepage"].replace("\n", " ")
+        try:
+            tool_homepage = tool[tool_name]["homepage"].replace("\n", " ")
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for tools section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            tool_homepage = None
+        try:
+            tool_license = ", ".join(tool[tool_name]["licence"]).replace("\n", " ")
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for tools section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            tool_license = None
+
         tool_table_row = (
             f"| {tool_name} | {tool_description} | {tool_license} | {tool_homepage} |\n"
         )
@@ -223,7 +239,14 @@ def convert_yaml_to_markdown(data):
         input_name = next(iter(input_item))  # Get the input name
         input_type = input_item[input_name]["type"]
         input_description = input_item[input_name]["description"].replace("\n", " ")
-        input_pattern = input_item[input_name].get("pattern", "").replace("\n", " ")
+        try:
+            input_pattern = input_item[input_name].get("pattern", "").replace("\n", " ")
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for input section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            input_pattern = None
         input_table_row = (
             f"| {input_name} | {input_type} | {input_description} | {input_pattern} |\n"
         )
@@ -236,17 +259,33 @@ def convert_yaml_to_markdown(data):
         output_name = next(iter(output_item))  # Get the output name
         output_type = output_item[output_name]["type"]
         output_description = output_item[output_name]["description"].replace("\n", " ")
-        output_pattern = output_item[output_name].get("pattern", "").replace("\n", " ")
+        try:
+            output_pattern = (
+                output_item[output_name].get("pattern", "").replace("\n", " ")
+            )
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for output section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            output_pattern = None
         output_table_row = f"| {output_name} | {output_type} | {output_description} | {output_pattern} |\n"
         outputs_table += output_table_row
 
     # Combine all sections into final Markdown content
     markdown_content = f"# Module: {data['name']}\n\n{data['description']}\n\n**Keywords:**\n\n{keywords_table}\n"
-    markdown_content += f"**Tools:**\n\n{tools_table}\n"
-    markdown_content += f"**Inputs:**\n\n{inputs_table}\n"
-    markdown_content += f"**Outputs:**\n\n{outputs_table}\n"
-    markdown_content += f"**Authors:**\n\n{', '.join(data['authors'])}\n\n"
-    markdown_content += f"**Maintainers:**\n\n{', '.join(data['maintainers'])}\n\n"
+    markdown_content += f"## Tools\n\n{tools_table}\n"
+    markdown_content += f"## Inputs\n\n{inputs_table}\n"
+    markdown_content += f"## Outputs\n\n{outputs_table}\n"
+    markdown_content += f"## Authors\n\n{', '.join(data['authors'])}\n\n"
+    try:
+        markdown_content += f"## Maintainers\n\n{', '.join(data['maintainers'])}\n\n"
+    except KeyError as err:
+        typer.secho(
+            f"Warning: attribute is missing {err}",
+            fg=typer.colors.BRIGHT_YELLOW,
+        )
+        markdown_content += "## Maintainers\n\nNone\n\n"
     return markdown_content
 
 
