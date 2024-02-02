@@ -3,6 +3,8 @@ import requests
 import typer
 import yaml
 from pathlib import Path
+from typing import Optional
+from typing_extensions import Annotated
 
 app = typer.Typer()
 
@@ -77,6 +79,9 @@ def convert(
         resolve_path=True,
         help="Path to the YAML file.",
     ),
+    subworkflows: Annotated[
+        Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
+    ] = False,
     output_file: str = typer.Option(
         "output.md",
         "--output-file",
@@ -93,6 +98,15 @@ def convert(
 
     :type yaml_file: Path
 
+    :param subworkflows: The `subworkflows` parameter is a boolean flag that determines whether to
+    convert the YAML file to Markdown using subworkflows or modules. It is specified using the
+    `--subworkflows` or `-S` option when running the script. If the flag is provided, the YAML file will
+    be, defaults to False
+    
+    :type subworkflows: Annotated[
+            Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
+        ] (optional)
+
     :param output_file: The `output_file` parameter is the path to the output Markdown file. It
     specifies the file where the converted Markdown content will be saved. By default, the value is set
     to "output.md". However, you can provide a different file path if desired
@@ -106,7 +120,10 @@ def convert(
     data = yaml.safe_load(yaml_data)
 
     # Convert validated YAML to Markdown
-    markdown_output = convert_yaml_to_markdown(data)
+    if subworkflows:
+        markdown_output = convert_yaml_to_markdown_subworkflows(data)
+    else:
+        markdown_output = convert_yaml_to_markdown_modules(data)
 
     # Write Markdown content to output file
     output_path = Path(output_file)
@@ -134,6 +151,9 @@ def all(
         "-s",
         help="URL of the JSON schema.",
     ),
+    subworkflows: Annotated[
+        Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
+    ] = False,
     output_file: str = typer.Option(
         "output.md",
         "--output-file",
@@ -151,6 +171,15 @@ def all(
 
     :type yaml_file: Path
 
+    :param subworkflows: The `subworkflows` parameter is a boolean flag that determines whether to
+    convert the YAML file to Markdown using subworkflows or modules. It is specified using the
+    `--subworkflows` or `-S` option when running the script. If the flag is provided, the YAML file will
+    be, defaults to False
+    
+    :type subworkflows: Annotated[
+            Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
+        ] (optional)
+    
     :param schema_url: The `schema_url` parameter is the URL of the JSON schema that will be used to
     validate the YAML data. In this code, the default value for `schema_url` is set to "https://raw.githubusercontent.com/mskcc-omics-workflows/yaml_to_md/main/nextflow_schema/meta-schema.json" derived from
     "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json". However, you
@@ -168,7 +197,10 @@ def all(
     validated_data = validate(yaml_file, schema_url)
 
     # Convert validated YAML to Markdown
-    markdown_output = convert_yaml_to_markdown(validated_data)
+    if subworkflows:
+        markdown_output = convert_yaml_to_markdown_subworkflows(validated_data)
+    else:
+        markdown_output = convert_yaml_to_markdown_modules(validated_data)
 
     # Write Markdown content to output file
     output_path = Path(output_file)
@@ -187,9 +219,9 @@ def read_yaml(yaml_file):
     return yaml_file.read_text()
 
 
-def convert_yaml_to_markdown(data):
+def convert_yaml_to_markdown_modules(data):
     """
-    The `convert_yaml_to_markdown` function takes in a YAML data structure and converts it into a
+    The `convert_yaml_to_markdown_modules` function takes in a YAML data structure and converts it into a
     Markdown format.
 
     :param data: The `data` parameter is a dictionary that contains information about a module. It has
@@ -286,6 +318,92 @@ def convert_yaml_to_markdown(data):
             fg=typer.colors.BRIGHT_YELLOW,
         )
         markdown_content += "## Maintainers\n\nNone\n\n"
+    return markdown_content
+
+
+def convert_yaml_to_markdown_subworkflows(data):
+    """
+    The `convert_yaml_to_markdown_subworkflows` function takes in a YAML data structure and converts it into a
+    Markdown format.
+
+    :param data: The `data` parameter is a dictionary that contains information about a module. It has
+    the following structure:
+    :return: a Markdown-formatted string that contains information about a module. The string includes
+    the module's name, description, keywords, tools, inputs, outputs, authors, and maintainers.
+    """
+    # Create Markdown table for keywords
+    keywords_table = "| Keywords |\n"
+    keywords_table += "|----------|\n"
+    for keyword in data["keywords"]:
+        keyword_table_row = f"| {keyword} |\n"
+        keywords_table += keyword_table_row
+
+    # Convert components to table
+    components_table = "| Components |\n| ---------- |\n"
+    for component in data["components"]:
+        components_table += f"| {component} |\n"
+
+    # Create Markdown table for inputs
+    inputs_table = "| Input | Type | Description | Pattern |\n"
+    inputs_table += "|-------|------|-------------|---------|\n"
+    for input_item in data["input"]:
+        input_name = next(iter(input_item))  # Get the input name
+
+        try:
+            input_type = input_item[input_name]["type"]
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for input section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            input_type = None
+        input_description = input_item[input_name]["description"].replace("\n", " ")
+        try:
+            input_pattern = input_item[input_name].get("pattern", "").replace("\n", " ")
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for input section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            input_pattern = None
+        input_table_row = (
+            f"| {input_name} | {input_type} | {input_description} | {input_pattern} |\n"
+        )
+        inputs_table += input_table_row
+
+    # Create Markdown table for outputs
+    outputs_table = "| Output | Type | Description | Pattern |\n"
+    outputs_table += "|--------|------|-------------|---------|\n"
+    for output_item in data["output"]:
+        output_name = next(iter(output_item))  # Get the output name
+        try:
+            output_type = output_item[output_name]["type"]
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for output section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            output_type = None
+        output_description = output_item[output_name]["description"].replace("\n", " ")
+        try:
+            output_pattern = (
+                output_item[output_name].get("pattern", "").replace("\n", " ")
+            )
+        except KeyError as err:
+            typer.secho(
+                f"Warning: attribute for output section is missing {err}",
+                fg=typer.colors.BRIGHT_YELLOW,
+            )
+            output_pattern = None
+        output_table_row = f"| {output_name} | {output_type} | {output_description} | {output_pattern} |\n"
+        outputs_table += output_table_row
+
+    # Combine all sections into final Markdown content
+    markdown_content = f"# Subworkflow: {data['name']}\n\n{data['description']}\n\n**Keywords:**\n\n{keywords_table}\n"
+    markdown_content += f"## Tools\n\n{components_table}\n"
+    markdown_content += f"## Inputs\n\n{inputs_table}\n"
+    markdown_content += f"## Outputs\n\n{outputs_table}\n"
+    markdown_content += f"## Authors\n\n{', '.join(data['authors'])}\n\n"
     return markdown_content
 
 
