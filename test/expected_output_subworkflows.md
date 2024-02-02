@@ -12,7 +12,7 @@ A subworkflow for generating a BAM file from FASTQ
 | bqsr |
 | duplicates |
 
-## Tools
+## Components
 
 | Components |
 | ---------- |

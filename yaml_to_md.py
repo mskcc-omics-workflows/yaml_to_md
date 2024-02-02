@@ -329,7 +329,7 @@ def convert_yaml_to_markdown_subworkflows(data):
     :param data: The `data` parameter is a dictionary that contains information about a module. It has
     the following structure:
     :return: a Markdown-formatted string that contains information about a module. The string includes
-    the module's name, description, keywords, tools, inputs, outputs, authors, and maintainers.
+    the module's name, description, keywords, components, inputs, outputs, and authors.
     """
     # Create Markdown table for keywords
     keywords_table = "| Keywords |\n"
@@ -400,7 +400,7 @@ def convert_yaml_to_markdown_subworkflows(data):
 
     # Combine all sections into final Markdown content
     markdown_content = f"# Subworkflow: {data['name']}\n\n{data['description']}\n\n**Keywords:**\n\n{keywords_table}\n"
-    markdown_content += f"## Tools\n\n{components_table}\n"
+    markdown_content += f"## Components\n\n{components_table}\n"
     markdown_content += f"## Inputs\n\n{inputs_table}\n"
     markdown_content += f"## Outputs\n\n{outputs_table}\n"
     markdown_content += f"## Authors\n\n{', '.join(data['authors'])}\n\n"
