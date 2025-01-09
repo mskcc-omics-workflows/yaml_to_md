@@ -102,7 +102,7 @@ def convert(
     convert the YAML file to Markdown using subworkflows or modules. It is specified using the
     `--subworkflows` or `-S` option when running the script. If the flag is provided, the YAML file will
     be, defaults to False
-    
+
     :type subworkflows: Annotated[
             Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
         ] (optional)
@@ -175,11 +175,11 @@ def all(
     convert the YAML file to Markdown using subworkflows or modules. It is specified using the
     `--subworkflows` or `-S` option when running the script. If the flag is provided, the YAML file will
     be, defaults to False
-    
+
     :type subworkflows: Annotated[
             Optional[bool], typer.Option("--subworkflows/--modules", "-S/-m")
         ] (optional)
-    
+
     :param schema_url: The `schema_url` parameter is the URL of the JSON schema that will be used to
     validate the YAML data. In this code, the default value for `schema_url` is set to "https://raw.githubusercontent.com/mskcc-omics-workflows/yaml_to_md/main/nextflow_schema/meta-schema.json" derived from
     "https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json". However, you
@@ -268,6 +268,7 @@ def convert_yaml_to_markdown_modules(data):
     inputs_table = "| Input | Type | Description | Pattern |\n"
     inputs_table += "|-------|------|-------------|---------|\n"
     for input_item in data["input"]:
+        input_item = input_item[0]
         input_name = next(iter(input_item))  # Get the input name
         input_type = input_item[input_name]["type"]
         input_description = input_item[input_name]["description"].replace("\n", " ")
@@ -285,24 +286,26 @@ def convert_yaml_to_markdown_modules(data):
         inputs_table += input_table_row
 
     # Create Markdown table for outputs
-    outputs_table = "| Output | Type | Description | Pattern |\n"
-    outputs_table += "|--------|------|-------------|---------|\n"
+    outputs_table = "| Output | Suboutput | Type | Description | Pattern |\n"
+    outputs_table += "|--------|-----------|------|-------------|---------|\n"
     for output_item in data["output"]:
         output_name = next(iter(output_item))  # Get the output name
-        output_type = output_item[output_name]["type"]
-        output_description = output_item[output_name]["description"].replace("\n", " ")
-        try:
-            output_pattern = (
-                output_item[output_name].get("pattern", "").replace("\n", " ")
-            )
-        except KeyError as err:
-            typer.secho(
-                f"Warning: attribute for output section is missing {err}",
-                fg=typer.colors.BRIGHT_YELLOW,
-            )
-            output_pattern = None
-        output_table_row = f"| {output_name} | {output_type} | {output_description} | {output_pattern} |\n"
-        outputs_table += output_table_row
+        for suboutput_item in output_item[output_name]:
+            suboutput_name = next(iter(suboutput_item))
+            suboutput_type = suboutput_item[suboutput_name]["type"]
+            suboutput_description = suboutput_item[suboutput_name]["description"].replace("\n", " ")
+            try:
+                suboutput_pattern = (
+                    suboutput_item[suboutput_name].get("pattern", "").replace("\n", " ")
+                )
+            except KeyError as err:
+                typer.secho(
+                    f"Warning: attribute for output section is missing {err}",
+                    fg=typer.colors.BRIGHT_YELLOW,
+                )
+                suboutput_pattern = None
+            output_table_row = f"| {output_name} | {suboutput_name} | {suboutput_type} | {suboutput_description} | {suboutput_pattern} |\n"
+            outputs_table += output_table_row
 
     # Combine all sections into final Markdown content
     markdown_content = f"# Module: {data['name']}\n\n{data['description']}\n\n**Keywords:**\n\n{keywords_table}\n"
